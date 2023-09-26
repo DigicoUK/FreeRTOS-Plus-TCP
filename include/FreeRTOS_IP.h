@@ -304,6 +304,31 @@
         #define ipFALSE_BOOL        ( 1 == 2 )
     #endif
 
+	#ifndef pdTRUE_SIGNED
+		#define pdTRUE_SIGNED    pdTRUE
+	#endif /* pdTRUE_SIGNED */
+
+	#ifndef pdFALSE_SIGNED
+		#define pdFALSE_SIGNED    pdFALSE
+	#endif /* pdFALSE_SIGNED */
+
+	#ifndef pdTRUE_UNSIGNED
+		#define pdTRUE_UNSIGNED    ( 1U )
+	#endif /* pdTRUE_UNSIGNED */
+
+	#ifndef pdFALSE_UNSIGNED
+		#define pdFALSE_UNSIGNED    ( 0U )
+	#endif /* pdFALSE_UNSIGNED */
+
+	#ifndef ipTRUE_BOOL
+		#define ipTRUE_BOOL    ( 1 == 1 )
+	#endif /* ipTRUE_BOOL */
+
+	#ifndef ipFALSE_BOOL
+		#define ipFALSE_BOOL    ( 1 == 2 )
+	#endif /* ipFALSE_BOOL */
+
+
 /*
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
  * FUNCTIONS IS AVAILABLE ON THE FOLLOWING URL:
