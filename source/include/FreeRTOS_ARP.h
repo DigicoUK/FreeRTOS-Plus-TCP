@@ -61,6 +61,7 @@ typedef struct xARP_CACHE_TABLE_ROW
     uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
     struct xNetworkEndPoint
     * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
+    struct xNetworkInterface * pxInterface; /**< interface to which this entry belongs*/
 } ARPCacheRow_t;
 
 typedef enum
@@ -84,7 +85,8 @@ typedef struct xCacheLocation
  * is found then no action will be taken.
  */
 void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
-                               const uint32_t ulIPAddress );
+                               const uint32_t ulIPAddress,
+                               struct xNetworkInterface * pxInterface );
 
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
@@ -97,7 +99,8 @@ void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
 
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress,
-                            struct xNetworkEndPoint * pxEndPoint );
+                            struct xNetworkEndPoint * pxEndPoint,
+                            struct xNetworkInterface * pxInterface );
 
 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
     /* Becomes non-zero if another device responded to a gratuitous ARP message. */
@@ -112,12 +115,13 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  * In some rare cases, it might be useful to remove a ARP cache entry of a
  * known MAC address to make sure it gets refreshed.
  */
-    uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress );
+    uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress,
+                                         struct xNetworkInterface * pxInterface)
 
 #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
 
 
-BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup );
+BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup, struct xNetworkInterface * pxInterface);
 
 BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
@@ -129,9 +133,10 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
  * isn't a gateway defined) then return eCantSendPacket.
  */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress,
-                                      struct xNetworkEndPoint ** ppxEndPoint );
+    eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                          MACAddress_t * const pxMACAddress,
+                                          struct xNetworkEndPoint ** ppxEndPoint,
+                                          struct xNetworkInterface * pxInterface );
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 

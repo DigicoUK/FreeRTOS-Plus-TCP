@@ -236,7 +236,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
             eARPLookupResult_t eResult;
 
-            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
+            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ), pxNetworkBuffer->pxInterface);
 
             if( eResult == eARPCacheHit )
             {
@@ -339,7 +339,7 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 
     ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
     /* Determine the ARP cache status for the requested IP address. */
-    eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ), &( pxSocket->pxEndPoint ) );
+    eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ), &( pxSocket->pxEndPoint ), pxSocket->pxEndPoint->pxNetworkInterface );
 
     switch( eReturned )
     {

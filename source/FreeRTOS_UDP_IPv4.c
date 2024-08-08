@@ -106,7 +106,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
     }
 
     /* Determine the ARP cache status for the requested IP address. */
-    eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
+    eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ), pxNetworkBuffer->pxInterface );
 
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
@@ -251,7 +251,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             /* Add an entry to the ARP table with a null hardware address.
              * This allows the ARP timer to know that an ARP reply is
              * outstanding, and perform retransmissions if necessary. */
-            vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
+            vARPRefreshCacheEntry( NULL, ulIPAddress, NULL, pxNetworkBuffer->pxInterface );
 
             /* Generate an ARP for the required IP address. */
             iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
@@ -382,7 +382,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 else
                 {
                     /* Update the age of this cache entry since a packet was received. */
-                    vARPRefreshCacheEntryAge( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                    vARPRefreshCacheEntryAge( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, pxNetworkBuffer->pxInterface );
                 }
             }
             else
@@ -503,7 +503,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 if( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
                 {
                     vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                           pxNetworkBuffer->pxEndPoint );
+                                           pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxInterface );
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
@@ -515,7 +515,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                     ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
                 {
                     vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                           pxNetworkBuffer->pxEndPoint );
+                                           pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxInterface );
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
@@ -534,7 +534,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                     #endif
                     {
                         vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                               pxNetworkBuffer->pxEndPoint );
+                                               pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxInterface );
                     }
 
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
@@ -548,7 +548,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                     ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
                 {
                     vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                           pxNetworkBuffer->pxEndPoint );
+                                           pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxInterface );
                     xReturn = ( BaseType_t ) ulNBNSHandlePacket( pxNetworkBuffer );
                 }
                 else
