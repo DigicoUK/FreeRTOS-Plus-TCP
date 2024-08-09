@@ -325,7 +325,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     /* The request is a Gratuitous ARP message.
                                      * Refresh the entry if it already exists. */
                                     /* Determine the ARP cache status for the requested IP address. */
-                                    if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ), pxNetworkBuffer->pxInterface ) == eARPCacheHit )
+                                    if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ), pxNetworkBuffer->pxEndPoint->pxNetworkInterface ) == eARPCacheHit )
                                     {
                                         /* Check if the endpoint matches with the one present in the ARP cache */
                                         if( pxCachedEndPoint == pxTargetEndPoint )
@@ -550,7 +550,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
                    {
                        /* If the IP is on the same subnet and we do not have an ARP entry already,
                         * then we should send out ARP for finding the MAC address. */
-                       if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxInterface ) == pdFALSE )
+                       if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint->pxNetworkInterface ) == pdFALSE )
                        {
                            FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
 
@@ -771,6 +771,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
             /* If the entry was not found, we use the oldest entry and set the IPaddress */
             xARPCache[ xLocation.xUseEntry ].ulIPAddress = ulIPAddress;
+            xARPCache[ xLocation.xUseEntry ].pxInterface = pxInterface;
 
             if( pxMACAddress != NULL )
             {
@@ -781,11 +782,13 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                 xARPCache[ xLocation.xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
                 xARPCache[ xLocation.xUseEntry ].ucValid = ( uint8_t ) pdTRUE;
                 xARPCache[ xLocation.xUseEntry ].pxEndPoint = pxEndPoint;
+                xARPCache[ xLocation.xUseEntry ].pxInterface = pxInterface;
             }
             else if( xLocation.xIpEntry < 0 )
             {
                 xARPCache[ xLocation.xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_RETRANSMISSIONS;
                 xARPCache[ xLocation.xUseEntry ].ucValid = ( uint8_t ) pdFALSE;
+                xARPCache[ xLocation.xUseEntry ].pxInterface = pxInterface;
             }
             else
             {
@@ -831,10 +834,11 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
     for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         BaseType_t xMatchingMAC = pdFALSE;
+        BaseType_t xMatchingInterface = pdFALSE;
 
-        if( xARPCache[ x ].pxInterface != pxInterface )
+        if( xARPCache[ x ].pxInterface == pxInterface )
         {
-            continue;
+            xMatchingInterface = pdTRUE;
         }
 
         if( pxMACAddress != NULL )
@@ -847,7 +851,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 
         /* Does this line in the cache table hold an entry for the IP
          * address being queried? */
-        if( xARPCache[ x ].ulIPAddress == ulIPAddress )
+        if( (xMatchingInterface != pdFALSE) && ( xARPCache[ x ].ulIPAddress == ulIPAddress ) )
         {
             if( pxMACAddress == NULL )
             {
@@ -866,6 +870,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                 xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
                 xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
                 xARPCache[ x ].pxEndPoint = pxEndPoint;
+                xARPCache[ x ].pxInterface = pxInterface;
                 /* Indicate to the caller that the entry is updated. */
                 xReturn = pdTRUE;
                 break;
@@ -878,7 +883,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
              * must be cleared. */
             pxLocation->xIpEntry = x;
         }
-        else if( xMatchingMAC != pdFALSE )
+        else if( ( xMatchingInterface != pdFALSE ) && ( xMatchingMAC != pdFALSE ) )
         {
             /* Found an entry with the given MAC-address, but the IP-address
              * is different.  Continue looping to find a possible match with
@@ -904,6 +909,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 
         /* _HT_
          * Shouldn't we test for xARPCache[ x ].ucValid == pdFALSE here ? */
+        /* Here we don't care if the interface matches, since we're evicting the entry anyway */
         else if( xARPCache[ x ].ucAge < ucMinAgeFound )
         {
             /* As the table is traversed, remember the table row that

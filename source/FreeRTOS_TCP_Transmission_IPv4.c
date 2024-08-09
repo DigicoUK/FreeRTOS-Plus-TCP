@@ -236,7 +236,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
             eARPLookupResult_t eResult;
 
-            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ), pxNetworkBuffer->pxInterface);
+            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ), pxSocket->pxEndPoint->pxNetworkInterface );
 
             if( eResult == eARPCacheHit )
             {

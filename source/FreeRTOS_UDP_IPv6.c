@@ -171,7 +171,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         /* Add an entry to the ARP table with a null hardware address.
          * This allows the ARP timer to know that an ARP reply is
          * outstanding, and perform retransmissions if necessary. */
-        vARPRefreshCacheEntry( NULL, ulIPAddress, NULL, pxNetworkBuffer->pxInterface );
+        vARPRefreshCacheEntry( NULL, ulIPAddress, NULL, NULL ); /* yes, this will assert */
 
         /* Generate an ARP for the required IP address. */
         iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );

@@ -251,7 +251,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             /* Add an entry to the ARP table with a null hardware address.
              * This allows the ARP timer to know that an ARP reply is
              * outstanding, and perform retransmissions if necessary. */
-            vARPRefreshCacheEntry( NULL, ulIPAddress, NULL, pxNetworkBuffer->pxInterface );
+            vARPRefreshCacheEntry( NULL, ulIPAddress, NULL, pxNetworkBuffer->pxEndPoint->pxNetworkInterface );
 
             /* Generate an ARP for the required IP address. */
             iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
@@ -503,7 +503,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 if( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
                 {
                     vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                           pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxInterface );
+                                           pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxEndPoint->pxNetworkInterface );
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
@@ -534,7 +534,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                     #endif
                     {
                         vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                               pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxInterface );
+                                               pxNetworkBuffer->pxEndPoint, pxNetworkBuffer->pxEndPoint->pxNetworkInterface );
                     }
 
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
